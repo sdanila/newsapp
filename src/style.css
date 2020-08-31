@@ -1,0 +1,4 @@
+a.brand-logo {
+    left: 50%;
+    transform: translateX(-50%);
+}

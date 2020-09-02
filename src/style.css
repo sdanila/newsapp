@@ -2,3 +2,8 @@ a.brand-logo {
     left: 50%;
     transform: translateX(-50%);
 }
+
+.card .card-image .card-title {
+    font-size: 15px;
+    background-color: rgba(0,0,0,0.6);
+}

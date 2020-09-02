@@ -62,7 +62,7 @@ const newsService = (function(){
     return {
         topHeadlines(country = 'ru', cb) {
             http.get(
-                `${proxyUrl}${apiUrl}/top-headlines?country=${country}&apiKey=${apiKey}`, cb
+                `${proxyUrl}${apiUrl}/top-headlines?country=${country}&category=technology&apiKey=${apiKey}`, cb
             );
         },
         everything(query, cb) {
@@ -83,5 +83,35 @@ function loadNews() {
 }
 
 function onGetResponse(err, res) {
-    console.log(res);
+    renderNews(res.articles);
+}
+
+function renderNews(news) {
+    const newsContainer = document.querySelector('.news-container .row');
+
+    let fragment = '';
+    news.forEach(newsItem => {
+        const el = newsTemplate(newsItem); 
+        fragment += el;
+    });
+    newsContainer.insertAdjacentHTML('afterbegin', fragment);
+}
+
+function newsTemplate({ urlToImage, url, title, description }) {
+    return `
+    <div class='col s6'>
+        <div class='card'>
+            <div class='card-image'>
+                <img src='${urlToImage}'>
+                <span class='card-title'>${title || ''}</span>
+            </div>
+            <div class='card-content'>
+                <p>${description || ''}</p>
+            </div>
+            <div class='card-action'>
+                <a href='${url}'>Read more</a>
+            </div>
+        </div>
+    </div>
+    `;
 }

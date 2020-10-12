@@ -62,16 +62,25 @@ const newsService = (function(){
     return {
         topHeadlines(country = 'ru', cb) {
             http.get(
-                `${proxyUrl}${apiUrl}/top-headlines?country=${country}&category=technology&apiKey=${apiKey}`, cb
+                `${proxyUrl}${apiUrl}/top-headlines?country=${country}&apiKey=${apiKey}`, cb
             );
         },
         everything(query, cb) {
             http.get(
-                `${apiUrl}/everything?q=${query}&apiKey=${apiKey}`, cb
+                `${proxyUrl}${apiUrl}/everything?q=${query}&apiKey=${apiKey}`, cb
             );
         },
     }
 })();
+
+const form = document.forms['newsControls'];
+const selectCountry = form.elements['country'];
+const searchInput = form.elements['search'];
+
+form.addEventListener('submit', e => {
+    e.preventDefault();
+    loadNews();
+})
 
 document.addEventListener('DOMContentLoaded', function() {
     M.AutoInit();
@@ -79,15 +88,37 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 function loadNews() {
-    newsService.topHeadlines('ru', onGetResponse);
+    showLoader();
+    const country = selectCountry.value;
+    const searchText = searchInput.value;
+
+    (!searchText)
+        ? newsService.topHeadlines(country, onGetResponse)
+        : newsService.everything(searchText, onGetResponse); 
+
+    // if (!searchText) {
+    //     newsService.topHeadlines(country, onGetResponse);
+    // }
+    // else {
+    //     newsService.everything(searchText, onGetResponse);
+    // }
 }
 
 function onGetResponse(err, res) {
+    removeLoader();
+
+    if (err) {
+        showAlert(err, 'error-msg');
+        return;
+    }
     renderNews(res.articles);
 }
 
 function renderNews(news) {
     const newsContainer = document.querySelector('.news-container .row');
+    if (newsContainer.children.length) {
+        clearContainer(newsContainer);
+    }
 
     let fragment = '';
     news.forEach(newsItem => {
@@ -95,6 +126,14 @@ function renderNews(news) {
         fragment += el;
     });
     newsContainer.insertAdjacentHTML('afterbegin', fragment);
+}
+
+function clearContainer(container) {
+    let child = container.lastElementChild;
+    while (child) {
+        container.removeChild(child);
+        child = container.lastElementChild;
+    }
 }
 
 function newsTemplate({ urlToImage, url, title, description }) {
@@ -114,4 +153,26 @@ function newsTemplate({ urlToImage, url, title, description }) {
         </div>
     </div>
     `;
+}
+
+function showAlert(msg, type = 'success') {
+    M.toast({ html: msg, classes: type });
+}
+
+function showLoader() {
+    document.body.insertAdjacentHTML(
+        'afterbegin', 
+        `
+        <div class="progress">
+            <div class="indeterminate"></div>
+        </div>
+    `,
+    );
+}
+
+function removeLoader() {
+    const loader = document.querySelector('.progress');
+    if (loader) {
+        loader.remove();
+    }
 }
